@@ -1,0 +1,30 @@
+﻿  main.cpp
+D:\Games\hideStealer\hideStealer\PCInfo.h(57,37): warning C4244: =: преобразование "double" в "size_t", возможна потеря данных
+  (компиляция исходного файла "main.cpp")
+  
+D:\Games\hideStealer\hideStealer\PCInfo.h(58,26): warning C4244: =: преобразование "double" в "size_t", возможна потеря данных
+  (компиляция исходного файла "main.cpp")
+  
+D:\Games\hideStealer\hideStealer\PCInfo.h(59,19): warning C4244: =: преобразование "const double" в "int", возможна потеря данных
+  (компиляция исходного файла "main.cpp")
+  
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.41.34120\include\algorithm(3750,25): warning C4244: аргумент: преобразование "wchar_t" в "unsigned char", возможна потеря данных
+  (компиляция исходного файла "main.cpp")
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.41.34120\include\algorithm(3750,25):
+      контекст создания экземпляра шаблона (сначала самый старый)
+          D:\Games\hideStealer\hideStealer\Indexing.h(20,10):
+          выполняется компиляция ссылки на экземпляр шаблон функции "_OutIt std::transform<std::_String_iterator<std::_String_val<std::_Simple_types<_Elem>>>,std::_String_iterator<std::_String_val<std::_Simple_types<_Elem>>>,lower::<lambda_1>>(const _InIt,const _InIt,_OutIt,_Fn)"
+          with
+          [
+              _OutIt=std::_String_iterator<std::_String_val<std::_Simple_types<wchar_t>>>,
+              _Elem=wchar_t,
+              _InIt=std::_String_iterator<std::_String_val<std::_Simple_types<wchar_t>>>,
+              _Fn=lower::<lambda_1>
+          ]
+  
+  Создание кода
+  1 of 5175 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    73 functions had inline decision re-evaluated but remain unchanged
+  Создание кода завершено
+  hideStealer.vcxproj -> D:\Games\hideStealer\Release\hideStealer.exe
