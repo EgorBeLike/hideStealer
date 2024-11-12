@@ -91,7 +91,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <AdditionalIncludeDirectories>C:\Users\Nikita\vcpkg\packages\curl_x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -125,6 +125,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <AdditionalIncludeDirectories>D:\Games\hideStealer\vcpkg_installed\vcpkg\pkgs\curl_x64-windows\include;D:\Games\hideStealer\vcpkg_installed\vcpkg\pkgs\libarchive_x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -148,6 +149,8 @@
     <ClCompile Include="SQLite3.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\vcpkg_installed\vcpkg\pkgs\libarchive_x64-windows\include\archive.h" />
+    <ClInclude Include="..\vcpkg_installed\vcpkg\pkgs\libarchive_x64-windows\include\archive_entry.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Global.h" />
     <ClInclude Include="Indexing.h" />

