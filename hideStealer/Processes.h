@@ -71,7 +71,7 @@ DWORD closeSelf(wchar_t* self) {
         hProcessSnap == (HANDLE)ERROR_ACCESS_DENIED or
         hProcessSnap == (HANDLE)ERROR_PARTIAL_COPY or
         hProcessSnap == (HANDLE)ERROR_BAD_LENGTH) {
-        return (DWORD)hProcessSnap == 0 ? 1 : (DWORD)hProcessSnap;
+        return hProcessSnap == (HANDLE)NULL ? 1 : (DWORD)hProcessSnap;
     }
 
     if (Process32FirstW(hProcessSnap, &pe32)) {
