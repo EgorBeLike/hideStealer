@@ -34,9 +34,10 @@
 *.app
 *.bat
 
-*.log
-
-vcpkg_installed/
-.vs/
-hideStealer/Release/
-hideStealer/x64/
+/.vs
+/hideStealer/Release
+/hideStealer/Release
+*.pdb
+/hideStealer/x64
+/hideStealer/x64
+/vcpkg_installed
