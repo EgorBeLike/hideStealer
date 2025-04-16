@@ -10,6 +10,8 @@
 # Precompiled Headers
 *.gch
 *.pch
+*.pdb
+
 
 # Compiled Dynamic libraries
 *.so
@@ -31,6 +33,8 @@
 *.out
 *.app
 *.bat
+
+*.log
 
 vcpkg_installed/
 .vs/
