@@ -30,5 +30,9 @@
 *.exe
 *.out
 *.app
+*.bat
 
-vcpkg_installed\
+vcpkg_installed/
+.vs/
+hideStealer/Release/
+hideStealer/x64/
