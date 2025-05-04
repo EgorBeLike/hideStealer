@@ -1,5 +1,6 @@
 #pragma once
 
+#define PROCESSCHECK     false // Checks and exit if count of processes greater than 1. For enable replace false to true
 #define DEBUGGERPROTECT  true  // Checks and exit if debugger enabled. For disable replace true to false
 #define DELETEEXE        false // Delete exe files when steal data. For disable replace true to false
 #define PINGREQUIRED     true  // Pings and exit if no internet. For disable replace true to false
