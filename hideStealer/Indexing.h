@@ -28,6 +28,10 @@ bool is_cache(fs::path path) {
     return false;
 }
 
+bool is_doc(fs::path path) {
+    return true;
+}
+
 void createDir(fs::path path) {
     if (!path.has_parent_path()) { return; }
     if (!fs::exists(path)) {
